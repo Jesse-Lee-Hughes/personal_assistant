@@ -21,7 +21,7 @@ class GoogleTools(BaseTool):
         return resp.text
 
     def send_email_summary(self, summary: str):
-        to = 'irenechan0726@gmail.com'
+        to = 'jessesaddress@gmail.com'
         subject = "An AI summary of Jesse's emails'"
         resp = self.model.generate_content(
             f"Format the email into an eloquently styled message to my "
