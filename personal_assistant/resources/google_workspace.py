@@ -10,7 +10,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
-project_root = Path(__file__).parent.parent
+project_root = Path(__file__).resolve().parents[2]
 env_path = project_root / '.env'
 load_dotenv(dotenv_path=env_path)
 credential_file = project_root / 'credentials.json'
@@ -39,9 +39,31 @@ class GoogleWorkspace:
                 token.write(creds.to_json())
         return creds
 
-    def list_drive_files(self) -> list[str]:
+    def list_drive_files(self, folder_id: str = None) -> list[dict]:
+        query = f"'{folder_id}' in parents" if folder_id else None
         results = self.drive_service.files().list(
-            pageSize=10,
+            q=query,
+            pageSize=1000,
+            fields="files(id, name)"
+        ).execute()
+        return results.get('files', [])
+
+    def get_folder_by_name(self, name: str) -> dict | None:
+        query = (
+            f"name = '{name}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
+        )
+        results = self.drive_service.files().list(
+            q=query,
+            pageSize=1,
+            fields="files(id, name)"
+        ).execute()
+        folders = results.get('files', [])
+        return folders[0] if folders else None
+
+    def list_drive_folders(self) -> list[dict]:
+        results = self.drive_service.files().list(
+            q="mimeType='application/vnd.google-apps.folder' and trashed = false",
+            pageSize=1000,
             fields="files(id, name)"
         ).execute()
         return results.get('files', [])
